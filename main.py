@@ -10,16 +10,26 @@ import itertools
 import random
 
 class MyVector:
+    """
+    ベクトルや線分の方程式のクラス
+    @x1, @y1 座標1
+    @x2, @y2 座標2
+    """
     def __init__(self, x1, y1, x2, y2):
         self.x1 = x1
         self.y1 = y1
         self.x2 = x2
         self.y2 = y2
+        # y = ax + b
         self.a = (float(y2)-float(y1)) / (float(x2)-float(x1))
         self.b = float(y1) - self.a*float(x1)
+        # 角度
         self.theta = math.atan(self.a)
 
     def make_line(self):
+        """
+        線分の両端をのばして可視化に利用
+        """
         mx = 1000 * np.cos(self.theta)
         my = 1000 * np.sin(self.theta)
     
@@ -31,18 +41,26 @@ class MyVector:
         return (_x1,_y1,_x2,_y2)
 
     def to_np_vec(self):
+        """
+        ベクトルをnumpyのarrayに変換
+        """
         vec = np.array((float(self.x2)-float(self.x1), float(self.y2)-float(self.y1)))
         return vec
 
-# ２元一次連立方程式をとく
-# http://d.hatena.ne.jp/sle/20080429/1209466513
 def mysolve(v1, v2):
+    """
+    ２元一次連立方程式をとく
+    http://d.hatena.ne.jp/sle/20080429/1209466513o
+    """
     # y - ax = b
     a = np.array([[1.0, -v1.a], [1.0, -v2.a]])
     b = np.array([v1.b, v2.b])
     return solve(a, b)
 
 def delete_near_points(pts):
+    """
+    ある座標近くの座標を削除
+    """
     result_points = []
     pts_ = pts[:]
 
@@ -61,33 +79,61 @@ def delete_near_points(pts):
     return result_points
 
 def draw_points(img, pts):
+    """
+    複数画像を塗る関数
+    """
     color = [int(255*random.random()),int(255*random.random()),int(255*random.random())]
 
     for x, y in pts:
         draw_pixel(img, x, y, color)
     
 def draw_pixel(img, x, y, color):
+    """
+    画素を塗る関数
+    一定の範囲を指定
+    """
     a = 6 # 画像を塗る範囲
 
     for x_ in range(int(x)-a, int(x)+a):
         for y_ in range(int(y)-a, int(y)+a):
             img[x_,y_] = color
 
-# 絹田作
-def seihou(p1,p2,p3,p4):
+def find_rect_from_points(rect_points):
+    """
+    4つの点の組み合わせが正方形かどうか調べる
+    """
+    rect = None
+
+    for p1, p2, p3, p4 in list(itertools.permutations(rect_points, 4)):
+        if is_square(p1,p2,p3,p4):
+            rect = [p1,p2,p3,p4]
+            break
+
+    return rect
+
+def is_square(p1,p2,p3,p4):
+    """
+    4つの点の並びが正方形かどうか調べる
+    @ 絹田
+    """
     m=(p1+p2+p3+p4)/4
+
     l1=np.linalg.norm(p1-m)
     l2=np.linalg.norm(p2-m)
     l3=np.linalg.norm(p3-m)
     l4=np.linalg.norm(p4-m)
+
     lines=np.array([l1,l2,l3,l4])
     ave=np.average(lines)
+
     sub1=np.linalg.norm(p1-p2)
     sub2=np.linalg.norm(p1-p3)
     sub3=np.linalg.norm(p1-p4)
+
     subsub=abs(sub1-sub2)
     subsub2=abs(sub1-sub3)
     subsub3=abs(sub2-sub3)
+
     if (subsub > 20) and (subsub2 > 20):
        return False
     for line in lines:
@@ -119,10 +165,10 @@ if __name__ == '__main__':
     
     for x1,y1,x2,y2 in lines[0]:
         vec = MyVector(x1,y1,x2,y2)
-
-        _x1, _y1, _x2, _y2 = vec.make_line()
-        cv2.line(img,(_x1,_y1),(_x2,_y2),(0,255,0),2)
         vecs.append(vec)
+        # 認識した線分の描画
+        # _x1, _y1, _x2, _y2 = vec.make_line()
+        # cv2.line(img,(_x1,_y1),(_x2,_y2),(0,255,0),2)
     
     # 全ての線分の内積を計算
     dots = [(v1, v2, np.dot(v1.to_np_vec(), v2.to_np_vec())) for v1 in vecs for v2 in vecs]
@@ -142,25 +188,17 @@ if __name__ == '__main__':
     pts = delete_near_points(pts)
     print len(pts)
     
-    # ポイントを描画
-    # draw_points(img, pts)
-    
-    # 全ての並びに対して並べる
-    rect = []
+    # 全ての並びに対して調べる
+    # 組み合わせの順列 = 順列の上から4つ 
+    rects = []
 
-    count = 0
-    for p1, p2, p3, p4 in list(itertools.permutations(pts, 4)):
-        if seihou(p1,p2,p3,p4):
-            rect.append([p1,p2,p3,p4])
-            count += 1  
-        if (count >= 30):
-            break
+    for rect_points in list(itertools.combinations(pts, 4)):
+        rect = find_rect_from_points(rect_points)
 
-
-    print len(rect)
-
-    for rect_pts in rect:
-        dump_points(rect_pts)
+        if rect is not None: 
+            rects.append(rect)
+        
+    for rect_pts in rects:
         draw_points(img, rect_pts)
     
     cv2.imwrite('./gazoukadai.jpg',img)
