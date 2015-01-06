@@ -7,6 +7,7 @@ import math
 from numpy.linalg import solve
 # http://qiita.com/junkls/items/10384950963056cc8e08
 import itertools
+import random
 
 class MyVector:
     def __init__(self, x1, y1, x2, y2):
@@ -55,21 +56,55 @@ def delete_near_points(pts):
         result_points.append(p1)
 
         # 自分のpointに近いものを削除
-        pts_ = [p2 for p2 in pts_ if np.linalg.norm(p1-p2) > 20]
+        pts_ = [p2 for p2 in pts_ if np.linalg.norm(p1-p2) > 50]
 
     return result_points
 
 def draw_points(img, pts):
-    for x, y in pts:
-        draw_pixel(img, x, y)
-    
-def draw_pixel(img, x, y):
-    a = 5 # 画像を塗る範囲
+    color = [int(255*random.random()),int(255*random.random()),int(255*random.random())]
 
-    color = [0,0,255]
+    for x, y in pts:
+        draw_pixel(img, x, y, color)
+    
+def draw_pixel(img, x, y, color):
+    a = 6 # 画像を塗る範囲
+
     for x_ in range(int(x)-a, int(x)+a):
         for y_ in range(int(y)-a, int(y)+a):
             img[x_,y_] = color
+
+# 絹田作
+def seihou(p1,p2,p3,p4):
+    m=(p1+p2+p3+p4)/4
+    l1=np.linalg.norm(p1-m)
+    l2=np.linalg.norm(p2-m)
+    l3=np.linalg.norm(p3-m)
+    l4=np.linalg.norm(p4-m)
+    lines=np.array([l1,l2,l3,l4])
+    ave=np.average(lines)
+    sub1=np.linalg.norm(p1-p2)
+    sub2=np.linalg.norm(p1-p3)
+    sub3=np.linalg.norm(p1-p4)
+    subsub=abs(sub1-sub2)
+    subsub2=abs(sub1-sub3)
+    subsub3=abs(sub2-sub3)
+    if (subsub > 20) and (subsub2 > 20):
+       return False
+    for line in lines:
+       #print line
+       if (line-ave) > 5 or line < 40:
+           return False
+   
+    return True
+
+def dump_points(pts):
+    for x, y in pts:
+        print "point"
+        print "x" 
+        print  x
+        print "y:" 
+        print  y
+    print ""
 
 if __name__ == '__main__':
     img = cv2.imread('./gazoukadai5.bmp')
@@ -105,15 +140,28 @@ if __name__ == '__main__':
     
     # 直交座標の量を減らす
     pts = delete_near_points(pts)
+    print len(pts)
     
     # ポイントを描画
-    draw_points(img, pts)
+    # draw_points(img, pts)
     
     # 全ての並びに対して並べる
+    rect = []
+
+    count = 0
     for p1, p2, p3, p4 in list(itertools.permutations(pts, 4)):
-        a = 1
-    
-    print len(list(itertools.permutations(pts, 4)))
+        if seihou(p1,p2,p3,p4):
+            rect.append([p1,p2,p3,p4])
+            count += 1  
+        if (count >= 1):
+            break
+
+
+    print len(rect)
+
+    for rect_pts in rect:
+        dump_points(rect_pts)
+        draw_points(img, rect_pts)
     
     cv2.imwrite('./gazoukadai.jpg',img)
     
