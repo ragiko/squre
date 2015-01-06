@@ -153,7 +153,7 @@ if __name__ == '__main__':
         if seihou(p1,p2,p3,p4):
             rect.append([p1,p2,p3,p4])
             count += 1  
-        if (count >= 1):
+        if (count >= 30):
             break
 
 
