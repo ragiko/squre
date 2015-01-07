@@ -7,6 +7,7 @@ import math
 from numpy.linalg import solve
 import itertools # http://qiita.com/junkls/items/10384950963056cc8e08
 import random
+import sys # モジュール属性 argv を取得するため
 
 class MyVector:
     """
@@ -152,7 +153,15 @@ def dump_points(pts):
     print ""
 
 if __name__ == '__main__':
-    img = cv2.imread('./gazoukadai5.bmp')
+    argvs = sys.argv  # コマンドライン引数を格納したリストの取得
+
+    if (len(argvs) != 2): 
+        print 'コマンドライン引数(1)にfilenameを入力'
+        quit()
+
+    filename = argvs[1]
+
+    img = cv2.imread(filename)
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     edges = cv2.Canny(gray,50,150,apertureSize = 3)
     

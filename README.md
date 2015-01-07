@@ -10,3 +10,7 @@
 ```
 rake main
 ```
+or
+```
+rake exe FILE=data/gazoukadai.bmp
+```
