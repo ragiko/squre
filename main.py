@@ -5,8 +5,7 @@ import cv2
 import numpy as np
 import math
 from numpy.linalg import solve
-# http://qiita.com/junkls/items/10384950963056cc8e08
-import itertools
+import itertools # http://qiita.com/junkls/items/10384950963056cc8e08
 import random
 
 class MyVector:
@@ -186,10 +185,11 @@ if __name__ == '__main__':
     
     # 直交座標の量を減らす
     pts = delete_near_points(pts)
-    print len(pts)
+    print('直交座標の数: {0}'.format(len(pts)))
     
     # 全ての並びに対して調べる
     # 組み合わせの順列 = 順列の上から4つ 
+    # NOTE!!: 計算に1分ぐらい時間がかかる!!
     rects = []
 
     for rect_points in list(itertools.combinations(pts, 4)):
@@ -198,6 +198,8 @@ if __name__ == '__main__':
         if rect is not None: 
             rects.append(rect)
         
+    print('正方形の数: {0}'.format(len(rects)))
+
     for rect_pts in rects:
         draw_points(img, rect_pts)
     
