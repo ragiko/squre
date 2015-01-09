@@ -153,13 +153,19 @@ def dump_points(pts):
     print ""
 
 if __name__ == '__main__':
-    argvs = sys.argv  # コマンドライン引数を格納したリストの取得
+    """
+    コマンドライン引数あり
+    """
+    # argvs = sys.argv  # コマンドライン引数を格納したリストの取得
 
-    if (len(argvs) != 2): 
-        print 'コマンドライン引数(1)にfilenameを入力'
-        quit()
+    # if (len(argvs) != 2): 
+    #     print 'コマンドライン引数(1)にfilenameを入力'
+    #     quit()
 
-    filename = argvs[1]
+    # filename = argvs[1]
+
+    filename = "data/gazoukadai.bmp"
+
 
     img = cv2.imread(filename)
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -210,6 +216,7 @@ if __name__ == '__main__':
     print('正方形の数: {0}'.format(len(rects)))
 
     for rect_pts in rects:
+        print rect_pts
         draw_points(img, rect_pts)
     
     cv2.imwrite('./gazoukadai.jpg',img)
