@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import cv # 一度だけ利用
 import cv2
 import numpy as np
 import math
@@ -152,6 +153,63 @@ def dump_points(pts):
         print  y
     print ""
 
+"""
+四角形かどうかのvalidation
+座標4点を結んだ線の黒色の割合を調べる
+"""
+def rectRemapPoints(pts):
+    """
+    四角形の並べ方を右回りか左回りにする
+    端の座標を見つけて、ループして見つける
+    """
+    if (len(pts) != 4):
+        print "not rect"
+        return pts
+
+    pts_xy_sum = []
+    for i in range(4):
+        pts_xy_sum.append((i, pts[i][0] + pts[i][1]))
+
+    max_index = max(pts_xy_sum, key=(lambda x: x[1]))[0]
+    min_index = min(pts_xy_sum, key=(lambda x: x[1]))[0]
+    other_indexes = [i for i in range(4) if i != max_index and i != min_index]
+
+    return [pts[min_index], pts[other_indexes[0]], pts[max_index], pts[other_indexes[1]]]
+
+def rectWhiteness(img, pts):
+    # とりあえず一列に並んでおけばok
+    # 左上, 右上, 右下, 左下 
+    if (len(pts) != 4):
+        print "not rect"
+        return 0.0
+
+    ave_ratio = 0.0
+    for i in range(3):
+        ave_ratio += lineWhiteness(img, pts[i], pts[i+1])
+
+    return ave_ratio/4
+
+# http://stackoverflow.com/questions/22952792/count-number-of-white-pixels-along-a-line-in-opencv
+def lineWhiteness(img, pt1, pt2):
+    """
+    線分の白の割合を調べる
+    """
+
+    sum = 0.0
+    count = 0.0
+
+    p1 = (int(pt1[1]), int(pt1[0])) # なんか逆
+    p2 = (int(pt2[1]), int(pt2[0]))
+    li = cv.InitLineIterator(cv.fromarray(img), p1, p2)
+    ther_color = 240
+    
+    for(r,g,b) in li:
+        sum += 1
+        if(r >= ther_color and g >= ther_color and b >= ther_color):
+            count += 1
+
+    return count/sum
+
 if __name__ == '__main__':
     """
     コマンドライン引数あり
@@ -215,9 +273,17 @@ if __name__ == '__main__':
         
     print('正方形の数: {0}'.format(len(rects)))
 
+    results = [] # テスト用
+
     for rect_pts in rects:
-        print rect_pts
-        draw_points(img, rect_pts)
-    
+        # 座標の並び方をremap
+        rect_pts = rectRemapPoints(rect_pts)
+
+        if (rectWhiteness(img, rect_pts) < 0.2): # 白色の割合が少ない
+            results.append(rect_pts)
+            draw_points(img, rect_pts)
+
+    print('正方形の数: {0}'.format(len(results)))
+
     cv2.imwrite('./gazoukadai.jpg',img)
     
