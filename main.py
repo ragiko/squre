@@ -157,7 +157,7 @@ def dump_points(pts):
 四角形かどうかのvalidation
 座標4点を結んだ線の黒色の割合を調べる
 """
-def rectRemapPoints(pts):
+def rect_remap_points(pts):
     """
     四角形の並べ方を右回りか左回りにする
     端の座標を見つけて、ループして見つける
@@ -176,7 +176,7 @@ def rectRemapPoints(pts):
 
     return [pts[min_index], pts[other_indexes[0]], pts[max_index], pts[other_indexes[1]]]
 
-def rectWhiteness(img, pts):
+def rect_whiteness(img, pts):
     # とりあえず一列に並んでおけばok
     # 左上, 右上, 右下, 左下 
     if (len(pts) != 4):
@@ -185,12 +185,12 @@ def rectWhiteness(img, pts):
 
     ave_ratio = 0.0
     for i in range(3):
-        ave_ratio += lineWhiteness(img, pts[i], pts[i+1])
+        ave_ratio += line_whiteness(img, pts[i], pts[i+1])
 
     return ave_ratio/4
 
 # http://stackoverflow.com/questions/22952792/count-number-of-white-pixels-along-a-line-in-opencv
-def lineWhiteness(img, pt1, pt2):
+def line_whiteness(img, pt1, pt2):
     """
     線分の白の割合を調べる
     """
@@ -277,9 +277,9 @@ if __name__ == '__main__':
 
     for rect_pts in rects:
         # 座標の並び方をremap
-        rect_pts = rectRemapPoints(rect_pts)
+        rect_pts = rect_remap_points(rect_pts)
 
-        if (rectWhiteness(img, rect_pts) < 0.2): # 白色の割合が少ない
+        if (rect_whiteness(img, rect_pts) < 0.2): # 白色の割合が少ない
             results.append(rect_pts)
             draw_points(img, rect_pts)
 
